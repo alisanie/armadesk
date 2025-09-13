@@ -20,6 +20,7 @@ test('users can authenticate using the login screen', function () {
     $response->assertRedirect(route('dashboard', absolute: false));
 });
 
+
 test('users can not authenticate with invalid password', function () {
     $user = User::factory()->create();
 
@@ -62,4 +63,21 @@ test('users are rate limited', function () {
     $errors = session('errors');
 
     $this->assertStringContainsString('Too many login attempts', $errors->first('email'));
+});
+
+test('deactivate user can not authenticate', function () {
+    $user = User::factory()->create([
+        'status' => 'deactivated',
+        'password' => bcrypt('password'),
+    ]);
+
+    $response = $this->post(route('login.store'), [
+        'email' => $user->email,
+        'password' => 'password',
+    ]);
+
+    
+    $response = $this->get('/dashboard');
+
+    $response->assertRedirect(route('login'));
 });
